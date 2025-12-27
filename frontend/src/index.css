@@ -1,0 +1,674 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+/* ========================================
+   MODERN STREAM CHAT STYLES
+   ======================================== */
+
+/* Main Chat Container */
+.str-chat {
+  --str-chat__primary-color: hsl(var(--primary));
+  --str-chat__active-primary: hsl(var(--primary));
+  --str-chat__surface-color: hsl(var(--background));
+  --str-chat__secondary-surface-color: hsl(var(--muted));
+  --str-chat__primary-surface-color: hsl(var(--primary));
+  --str-chat__primary-surface-color-low-emphasis: hsl(var(--primary) / 0.1);
+  --str-chat__border-radius-circle: 9999px;
+  --str-chat__border-radius-md: var(--radius);
+  height: 100% !important;
+  background: transparent !important;
+  font-family: inherit !important;
+}
+
+.str-chat__window,
+.str-chat__channel {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  background: hsl(var(--background)) !important;
+}
+
+.str-chat__main-panel {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+}
+
+/* ========================================
+   MODERN MESSAGE INPUT - Refined Capsule
+   ======================================== */
+
+.str-chat__input-flat {
+  background: hsl(var(--background)) !important;
+  border-top: 1px solid hsl(var(--border)) !important;
+  padding: 1rem 1.5rem !important;
+  box-shadow: 0 -1px 3px 0 rgb(0 0 0 / 0.02) !important;
+}
+
+.str-chat__input-flat-wrapper {
+  background: hsl(var(--muted) / 0.3) !important;
+  border: 1.5px solid hsl(var(--border)) !important;
+  border-radius: 24px !important;
+  padding: 0.375rem 0.75rem !important;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.02) !important;
+}
+
+.str-chat__input-flat-wrapper:focus-within {
+  background: hsl(var(--background)) !important;
+  border-color: hsl(var(--primary)) !important;
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1) !important;
+}
+
+.str-chat__textarea textarea {
+  background: transparent !important;
+  border: none !important;
+  padding: 0.625rem 0.5rem !important;
+  min-height: 20px !important;
+  max-height: 120px !important;
+  color: hsl(var(--foreground)) !important;
+  font-size: 0.9375rem !important;
+  line-height: 1.5 !important;
+  resize: none !important;
+}
+
+.str-chat__textarea textarea:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.str-chat__textarea textarea::placeholder {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+/* Modern Send Button */
+.str-chat__send-button {
+  background: hsl(var(--primary)) !important;
+  border-radius: 50% !important;
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: none !important;
+  margin-left: 0.5rem !important;
+  box-shadow: 0 4px 12px hsl(var(--primary) / 0.25) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.str-chat__send-button:hover:not(:disabled) {
+  background: hsl(var(--primary) / 0.9) !important;
+  transform: scale(1.05) translateY(-1px) !important;
+  box-shadow: 0 6px 16px hsl(var(--primary) / 0.3) !important;
+}
+
+.str-chat__send-button:active:not(:disabled) {
+  transform: scale(0.98) !important;
+}
+
+.str-chat__send-button:disabled {
+  background: hsl(var(--muted)) !important;
+  box-shadow: none !important;
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+.str-chat__send-button svg {
+  fill: hsl(var(--primary-foreground)) !important;
+  width: 18px !important;
+  height: 18px !important;
+}
+
+/* Utility Buttons (Emoji, Attachments) */
+.str-chat__fileupload-wrapper button,
+.str-chat__emojiselect-wrapper button {
+  color: hsl(var(--muted-foreground)) !important;
+  padding: 0.5rem !important;
+  border-radius: 50% !important;
+  transition: all 0.15s !important;
+  background: transparent !important;
+}
+
+.str-chat__fileupload-wrapper button:hover,
+.str-chat__emojiselect-wrapper button:hover {
+  background: hsl(var(--muted)) !important;
+  color: hsl(var(--primary)) !important;
+}
+
+/* ========================================
+   MESSAGE LIST - Clean & Modern
+   ======================================== */
+
+.str-chat__list {
+  background: hsl(var(--background)) !important;
+  padding: 1.5rem !important;
+}
+
+.str-chat__li {
+  margin-bottom: 0.75rem !important;
+}
+
+.str-chat__message-simple {
+  padding: 0 !important;
+  background: transparent !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.str-chat__message-text-inner {
+  border-radius: 18px !important;
+  padding: 0.75rem 1rem !important;
+  font-size: 0.9375rem !important;
+  line-height: 1.5 !important;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+}
+
+/* Others' Messages */
+.str-chat__message-simple:not(.str-chat__message-simple--me) .str-chat__message-text-inner {
+  background: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
+  border-bottom-left-radius: 4px !important;
+}
+
+/* My Messages */
+.str-chat__message-simple--me .str-chat__message-text-inner {
+  background: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  border-bottom-right-radius: 4px !important;
+}
+
+.str-chat__message-simple--me .str-chat__message-text-inner p {
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* Message Metadata */
+.str-chat__message-data {
+  font-size: 0.6875rem !important;
+  color: hsl(var(--muted-foreground)) !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.str-chat__message-simple--me .str-chat__message-data {
+  text-align: right !important;
+}
+
+/* Avatar */
+.str-chat__avatar {
+  width: 36px !important;
+  height: 36px !important;
+  margin-right: 0.75rem !important;
+}
+
+.str-chat__avatar-image {
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  box-shadow: 0 2px 4px rgb(0 0 0 / 0.05) !important;
+}
+
+/* ========================================
+   SCROLLBAR STYLING
+   ======================================== */
+
+.str-chat__list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.str-chat__list::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.str-chat__list::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+.str-chat__list::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* ========================================
+   REACTIONS & ADDITIONAL ELEMENTS
+   ======================================== */
+
+.str-chat__reaction-list {
+  background: hsl(var(--popover)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 12px !important;
+  padding: 0.25rem 0.5rem !important;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.08) !important;
+}
+
+.str-chat__message-attachment {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  margin-top: 0.5rem !important;
+}
+
+/* Typing Indicator */
+.str-chat__typing-indicator {
+  color: hsl(var(--muted-foreground)) !important;
+  font-size: 0.875rem !important;
+  padding: 0.5rem 1.5rem !important;
+}
+
+/* Date Separator */
+.str-chat__date-separator {
+  color: hsl(var(--muted-foreground)) !important;
+  font-size: 0.75rem !important;
+  margin: 1.5rem 0 !important;
+}
+
+.str-chat__date-separator-line {
+  border-color: hsl(var(--border)) !important;
+}
+
+/* ========================================
+   EMOJI PICKER
+   ======================================== */
+
+.str-chat__emoji-picker {
+  background: hsl(var(--popover)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 40px rgb(0 0 0 / 0.1) !important;
+}
+
+/* ========================================
+   THREAD PANEL
+   ======================================== */
+
+.str-chat__thread {
+  background: hsl(var(--background)) !important;
+  border-left: 1px solid hsl(var(--border)) !important;
+}
+
+.str-chat__thread-header {
+  background: hsl(var(--background)) !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+  padding: 1rem 1.5rem !important;
+}
+
+/* ========================================
+   RESPONSIVE ADJUSTMENTS
+   ======================================== */
+
+@media (max-width: 640px) {
+  .str-chat__input-flat {
+    padding: 0.75rem 1rem !important;
+  }
+  
+  .str-chat__list {
+    padding: 1rem !important;
+  }
+  
+  .str-chat__message-text-inner {
+    font-size: 0.875rem !important;
+  }
+}
+
+/* ========================================
+   ENHANCED ANIMATIONS & UTILITIES
+   Add these to your existing index.css
+   ======================================== */
+
+/* Gradient Animation for Text */
+@keyframes gradient {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  animation: gradient 3s ease infinite;
+}
+
+/* Blob Animation for Background Orbs */
+@keyframes blob {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s ease-in-out infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Slide-in Animations */
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-down {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.5s ease-out;
+}
+
+.animate-slide-in-down {
+  animation: slide-in-down 0.4s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out;
+}
+
+/* Custom Scrollbar Styling */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: hsl(var(--b3));
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--bc) / 0.3);
+}
+
+.scrollbar-track-transparent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Smooth Transitions for All Interactive Elements */
+button, a, .btn {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced Button Hover Effects */
+.btn-ghost:hover {
+  transform: translateY(-1px);
+}
+
+.btn-ghost:active {
+  transform: translateY(0);
+}
+
+/* Glow Effect Utility */
+.glow-primary {
+  box-shadow: 0 0 20px hsl(var(--p) / 0.3);
+}
+
+.glow-primary:hover {
+  box-shadow: 0 0 30px hsl(var(--p) / 0.5);
+}
+
+/* Card Hover Effects */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Backdrop Blur Utility */
+.backdrop-blur-glass {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Shine Effect Animation */
+@keyframes shine {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.animate-shine {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shine 3s ease-in-out infinite;
+}
+
+/* Pulse Effect for Status Indicators */
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 hsl(var(--su) / 0.7);
+  }
+  100% {
+    box-shadow: 0 0 0 8px hsl(var(--su) / 0);
+  }
+}
+
+.pulse-ring {
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Floating Animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Scale on Hover */
+.scale-hover {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scale-hover:hover {
+  transform: scale(1.05);
+}
+
+.scale-hover:active {
+  transform: scale(0.98);
+}
+
+/* Rotate on Hover */
+.rotate-hover {
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rotate-hover:hover {
+  transform: rotate(180deg);
+}
+
+/* Glass Morphism Effect */
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Gradient Border Animation */
+@keyframes gradient-border {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.gradient-border {
+  background: linear-gradient(90deg, hsl(var(--p)), hsl(var(--s)), hsl(var(--p)));
+  background-size: 200% 200%;
+  animation: gradient-border 3s ease infinite;
+}
+
+/* Shimmer Loading Effect */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--b2)) 0%,
+    hsl(var(--b3)) 50%,
+    hsl(var(--b2)) 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Bounce In Animation */
+@keyframes bounce-in {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Slide Up Animation */
+@keyframes slide-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out;
+}
