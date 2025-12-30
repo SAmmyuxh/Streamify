@@ -47,6 +47,16 @@ const DEEPGRAM_LANGUAGE_CODES = {
   English: "en"
 };
 
+// Browser SpeechSynthesis uses different format (e.g., "es-ES", "fr-FR")
+const SPEECH_LANG_CODES = {
+  Spanish: ["es-ES", "es-MX", "es-US", "es"],
+  French: ["fr-FR", "fr-CA", "fr"],
+  German: ["de-DE", "de-AT", "de"],
+  Italian: ["it-IT", "it"],
+  Japanese: ["ja-JP", "ja"],
+  English: ["en-US", "en-GB", "en-AU", "en"]
+};
+
 const VoicePage = () => {
   const { authUser } = useAuthUser();
   const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
@@ -206,24 +216,45 @@ const VoicePage = () => {
   };
 
   const setVoiceAndSpeak = (utterance, voices) => {
-    const langCode = DEEPGRAM_LANGUAGE_CODES[learningLang] || "en";
+    const langCodes = SPEECH_LANG_CODES[learningLang] || ["en-US", "en"];
     
-    // Try to find a voice that matches the language
-    const voice = voices.find(v => v.lang.startsWith(langCode)) || 
-                  voices.find(v => v.lang.includes(langCode)) ||
-                  voices[0]; // Fallback to first available voice
+    // Try to find a voice matching one of the preferred language codes
+    let voice = null;
+    for (const code of langCodes) {
+      voice = voices.find(v => v.lang === code);
+      if (voice) break;
+      // Also try partial match
+      voice = voices.find(v => v.lang.startsWith(code.split('-')[0]));
+      if (voice) break;
+    }
+    
+    // Final fallback: look for any voice with the base language code
+    if (!voice) {
+      const baseLang = langCodes[0]?.split('-')[0] || 'en';
+      voice = voices.find(v => v.lang.toLowerCase().startsWith(baseLang));
+    }
+    
+    // Ultimate fallback: first available voice
+    if (!voice && voices.length > 0) {
+      voice = voices[0];
+    }
     
     if (voice) {
       utterance.voice = voice;
+      utterance.lang = voice.lang; // Explicitly set the language
       console.log("Using voice:", voice.name, voice.lang);
+    } else {
+      // If no voice found, at least set the language
+      utterance.lang = langCodes[0] || 'en-US';
+      console.log("No voice found, using language:", utterance.lang);
     }
     
-    utterance.rate = 0.85;
+    utterance.rate = 0.85; // Slightly slower for clarity
     utterance.pitch = 1.0;
     utterance.volume = 1.0;
     
     utterance.onstart = () => {
-      console.log("Speech started");
+      console.log("Speech started with voice:", utterance.voice?.name, "lang:", utterance.lang);
     };
     
     utterance.onerror = (event) => {
@@ -232,7 +263,7 @@ const VoicePage = () => {
     };
     
     window.speechSynthesis.speak(utterance);
-    toast.success("Playing pronunciation...", { duration: 1500, icon: "🔊" });
+    toast.success(`Playing ${learningLang} pronunciation...`, { duration: 1500, icon: "🔊" });
   };
 
   useEffect(() => {

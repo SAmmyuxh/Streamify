@@ -6,26 +6,33 @@ import GlassBackground from "./GlassBackground";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getNotifications } from "../lib/api";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Video } from "lucide-react";
 import useAuthUser from "../hooks/useAuthUser";
 
 const Layout = ({ children }) => {
   const location = useLocation();
-  const hideNavbarRoutes = ["/login", "/signup"];
-  const hideSidebarRoutes = ["/login", "/signup"];
+  const hideNavbarRoutes = ["/login", "/signup", "/onboarding"];
+  const hideSidebarRoutes = ["/login", "/signup", "/onboarding"];
+  const isAuthPage = hideNavbarRoutes.includes(location.pathname);
   const isChatPage = location.pathname?.startsWith("/chat");
   const isCallPage = location.pathname?.startsWith("/call");
   
-  const showNavbar = !hideNavbarRoutes.includes(location.pathname) && !isCallPage;
-  const showSidebar = !hideSidebarRoutes.includes(location.pathname) && !isChatPage && !isCallPage;
+  const showNavbar = !isAuthPage && !isCallPage;
+  const showSidebar = !isAuthPage && !isChatPage && !isCallPage;
+  
+  // Only get authUser on non-auth pages to avoid unnecessary requests
   const { authUser } = useAuthUser();
+  
+  // Mobile sidebar state
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
+  // Only fetch notifications when user is authenticated AND not on auth pages
   const { data: notifications } = useQuery({
     queryKey: ["notifications"],
     queryFn: getNotifications,
     refetchInterval: 3000, // Poll every 3s
-    enabled: !!authUser,
+    enabled: !!authUser && !isAuthPage,
   });
 
   const lastProcessedCallRef = useRef(null);
@@ -81,15 +88,19 @@ const Layout = ({ children }) => {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Enhanced Background with Animation */}
-      <GlassBackground />
-      
-      {/* Animated Gradient Orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 -left-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl animate-blob" />
-        <div className="absolute top-0 -right-40 w-80 h-80 bg-secondary/10 rounded-full blur-3xl animate-blob animation-delay-2000" />
-        <div className="absolute -bottom-40 left-1/2 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-blob animation-delay-4000" />
-      </div>
+      {/* Enhanced Background with Animation - Hide on auth pages */}
+      {!isAuthPage && (
+        <>
+          <GlassBackground />
+          
+          {/* Animated Gradient Orbs */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-0 -left-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl animate-blob" />
+            <div className="absolute top-0 -right-40 w-80 h-80 bg-secondary/10 rounded-full blur-3xl animate-blob animation-delay-2000" />
+            <div className="absolute -bottom-40 left-1/2 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-blob animation-delay-4000" />
+          </div>
+        </>
+      )}
 
       {/* Custom Toast Styling */}
       <Toaster 
@@ -97,22 +108,33 @@ const Layout = ({ children }) => {
         toastOptions={{
           duration: 3000,
           style: {
-            background: 'hsl(var(--b2))',
-            color: 'hsl(var(--bc))',
-            border: '1px solid hsl(var(--b3))',
+            background: '#1f2937', // Solid dark gray background
+            color: '#f9fafb',
+            border: '1px solid #374151',
             borderRadius: '12px',
             padding: '16px',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.4), 0 4px 12px rgba(0,0,0,0.3)',
+            fontWeight: '500',
           },
           success: {
+            style: {
+              background: '#065f46', // Solid green background
+              color: '#ecfdf5',
+              border: '1px solid #10b981',
+            },
             iconTheme: {
-              primary: 'hsl(var(--su))',
+              primary: '#10b981',
               secondary: 'white',
             },
           },
           error: {
+            style: {
+              background: '#7f1d1d', // Solid red background
+              color: '#fef2f2',
+              border: '1px solid #ef4444',
+            },
             iconTheme: {
-              primary: 'hsl(var(--er))',
+              primary: '#ef4444',
               secondary: 'white',
             },
           },
@@ -123,7 +145,10 @@ const Layout = ({ children }) => {
         {/* Sidebar with Slide-in Animation */}
         {showSidebar && (
           <div className="animate-slide-in-left relative z-50">
-            <Sidebar />
+            <Sidebar 
+              isMobileOpen={isMobileSidebarOpen} 
+              onMobileClose={() => setIsMobileSidebarOpen(false)} 
+            />
           </div>
         )}
 
@@ -131,7 +156,7 @@ const Layout = ({ children }) => {
           {/* Navbar with Slide-down Animation */}
           {showNavbar && (
             <div className="animate-slide-in-down">
-              <Navbar />
+              <Navbar onMobileMenuToggle={() => setIsMobileSidebarOpen(true)} />
             </div>
           )}
 

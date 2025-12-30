@@ -1,9 +1,9 @@
 import { Link, useLocation } from "react-router";
 import useAuthUser from "../hooks/useAuthUser";
-import { BellIcon, HomeIcon, ShipWheelIcon, UsersIcon, UserIcon, Sparkles, ChevronLeft, ChevronRight, Trophy } from "lucide-react";
+import { BellIcon, HomeIcon, ShipWheelIcon, UsersIcon, UserIcon, Sparkles, ChevronLeft, ChevronRight, Trophy, X } from "lucide-react";
 import { useState } from "react";
 
-const Sidebar = () => {
+const Sidebar = ({ isMobileOpen, onMobileClose }) => {
   const { authUser } = useAuthUser();
   const location = useLocation();
   const currentPath = location.pathname;
@@ -17,21 +17,23 @@ const Sidebar = () => {
     { path: "/profile", icon: UserIcon, label: "Profile" },
   ];
 
-  return (
-    <aside className={`
-      ${isCollapsed ? 'w-20' : 'w-64'} 
-      bg-gradient-to-b from-base-200 to-base-100 border-r border-base-300/50 
-      hidden lg:flex flex-col h-screen sticky top-0 shadow-xl
-      transition-all duration-300 ease-in-out
-    `}>
+  const handleNavClick = () => {
+    // Close mobile sidebar when a nav item is clicked
+    if (onMobileClose) {
+      onMobileClose();
+    }
+  };
+
+  const sidebarContent = (isMobile = false) => (
+    <>
       {/* Logo Section with Enhanced Styling */}
       <div className="p-6 border-b border-base-300/30 bg-base-200/50 backdrop-blur-sm relative">
-        <Link to="/" className="flex items-center gap-3 group">
+        <Link to="/" className="flex items-center gap-3 group" onClick={handleNavClick}>
           <div className="relative flex-shrink-0">
             <ShipWheelIcon className="size-10 text-primary drop-shadow-lg group-hover:rotate-180 transition-transform duration-700" />
             <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full group-hover:bg-primary/30 transition-all" />
           </div>
-          {!isCollapsed && (
+          {(!isCollapsed || isMobile) && (
             <div className="flex flex-col overflow-hidden">
               <span className="text-2xl font-bold text-primary tracking-tight whitespace-nowrap">
                 Streamify
@@ -43,18 +45,30 @@ const Sidebar = () => {
           )}
         </Link>
         
-        {/* Collapse/Expand Button */}
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-10 group"
-          title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {isCollapsed ? (
-            <ChevronRight className="size-4 text-primary-content" />
-          ) : (
-            <ChevronLeft className="size-4 text-primary-content" />
-          )}
-        </button>
+        {/* Close Button for Mobile */}
+        {isMobile && (
+          <button
+            onClick={onMobileClose}
+            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-base-300/50 flex items-center justify-center hover:bg-base-300 transition-colors"
+          >
+            <X className="size-5" />
+          </button>
+        )}
+        
+        {/* Collapse/Expand Button - Desktop Only */}
+        {!isMobile && (
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-10 group"
+            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isCollapsed ? (
+              <ChevronRight className="size-4 text-primary-content" />
+            ) : (
+              <ChevronLeft className="size-4 text-primary-content" />
+            )}
+          </button>
+        )}
       </div>
 
       {/* Navigation Links with Enhanced Animations */}
@@ -65,6 +79,7 @@ const Sidebar = () => {
             <Link
               key={path}
               to={path}
+              onClick={handleNavClick}
               className={`
                 group relative flex items-center gap-3 px-4 py-3 rounded-xl
                 transition-all duration-300 ease-out
@@ -72,12 +87,12 @@ const Sidebar = () => {
                   ? "bg-primary text-primary-content shadow-lg shadow-primary/30 scale-[1.02]" 
                   : "hover:bg-base-300/50 text-base-content/70 hover:text-base-content"
                 }
-                ${isCollapsed ? 'justify-center' : 'hover:pl-6'}
+                ${isCollapsed && !isMobile ? 'justify-center' : 'hover:pl-6'}
               `}
-              title={isCollapsed ? label : ''}
+              title={isCollapsed && !isMobile ? label : ''}
             >
               {/* Active Indicator */}
-              {isActive && !isCollapsed && (
+              {isActive && (!isCollapsed || isMobile) && (
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary-content rounded-r-full" />
               )}
               
@@ -88,7 +103,7 @@ const Sidebar = () => {
               `} />
               
               {/* Label */}
-              {!isCollapsed && (
+              {(!isCollapsed || isMobile) && (
                 <span className="font-medium text-sm tracking-wide whitespace-nowrap">
                   {label}
                 </span>
@@ -99,8 +114,8 @@ const Sidebar = () => {
                 <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               )}
               
-              {/* Tooltip for collapsed state */}
-              {isCollapsed && (
+              {/* Tooltip for collapsed state - Desktop Only */}
+              {isCollapsed && !isMobile && (
                 <div className="absolute left-full ml-2 px-3 py-2 bg-base-300 text-base-content text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap shadow-lg z-50">
                   {label}
                 </div>
@@ -114,12 +129,13 @@ const Sidebar = () => {
       <div className="p-4 border-t border-base-300/30 mt-auto bg-base-200/30 backdrop-blur-sm">
         <Link 
           to="/profile" 
+          onClick={handleNavClick}
           className={`
             flex items-center gap-3 hover:bg-base-300/30 p-3 rounded-xl 
             transition-all duration-300 group relative overflow-hidden
-            ${isCollapsed ? 'justify-center' : ''}
+            ${isCollapsed && !isMobile ? 'justify-center' : ''}
           `}
-          title={isCollapsed ? authUser?.fullName : ''}
+          title={isCollapsed && !isMobile ? authUser?.fullName : ''}
         >
           {/* Animated Background on Hover */}
           <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 bg-[length:200%] opacity-0 group-hover:opacity-100 group-hover:animate-gradient transition-opacity" />
@@ -136,7 +152,7 @@ const Sidebar = () => {
           </div>
           
           {/* User Info */}
-          {!isCollapsed && (
+          {(!isCollapsed || isMobile) && (
             <div className="flex-1 relative z-10 min-w-0">
               <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
                 {authUser?.fullName}
@@ -148,8 +164,8 @@ const Sidebar = () => {
             </div>
           )}
           
-          {/* Tooltip for collapsed state */}
-          {isCollapsed && (
+          {/* Tooltip for collapsed state - Desktop Only */}
+          {isCollapsed && !isMobile && (
             <div className="absolute left-full ml-2 px-3 py-2 bg-base-300 text-base-content text-sm rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap shadow-lg z-50 min-w-max">
               <p className="font-semibold">{authUser?.fullName}</p>
               <p className="text-xs text-success flex items-center gap-1">
@@ -160,7 +176,41 @@ const Sidebar = () => {
           )}
         </Link>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <aside className={`
+        ${isCollapsed ? 'w-20' : 'w-64'} 
+        bg-gradient-to-b from-base-200 to-base-100 border-r border-base-300/50 
+        hidden lg:flex flex-col h-screen sticky top-0 shadow-xl
+        transition-all duration-300 ease-in-out
+      `}>
+        {sidebarContent(false)}
+      </aside>
+
+      {/* Mobile Sidebar Overlay */}
+      {isMobileOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden animate-fade-in"
+          onClick={onMobileClose}
+        />
+      )}
+
+      {/* Mobile Sidebar Drawer */}
+      <aside className={`
+        fixed top-0 left-0 h-full w-72 z-50
+        bg-gradient-to-b from-base-200 to-base-100 
+        flex flex-col shadow-2xl
+        transform transition-transform duration-300 ease-out
+        lg:hidden
+        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        {sidebarContent(true)}
+      </aside>
+    </>
   );
 };
 

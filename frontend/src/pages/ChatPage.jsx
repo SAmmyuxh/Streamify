@@ -43,7 +43,7 @@ const SearchModal = ({ isOpen, onClose, channel }) => {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  const handleSearch = async (query) => {
+  const handleSearch = (query) => {
     setSearchQuery(query);
     if (!query.trim() || query.length < 2) {
       setSearchResults([]);
@@ -52,9 +52,15 @@ const SearchModal = ({ isOpen, onClose, channel }) => {
 
     setIsSearching(true);
     try {
-      // Search messages in the channel
-      const results = await channel.search({ text: { $autocomplete: query } });
-      setSearchResults(results.results || []);
+      // Search through local channel messages
+      const messages = channel?.state?.messages || [];
+      const lowerQuery = query.toLowerCase();
+      
+      const filteredMessages = messages.filter(msg => 
+        msg.text && msg.text.toLowerCase().includes(lowerQuery)
+      ).map(msg => ({ message: msg }));
+      
+      setSearchResults(filteredMessages);
     } catch (error) {
       console.error("Search error:", error);
       toast.error("Search failed");
@@ -300,7 +306,7 @@ const CustomChannelHeader = ({ onVideoCall, onVoiceCall, onSearch, onInfo, onDel
   };
 
   return (
-    <div className="relative h-16 sm:h-20 border-b border-border/50 bg-gradient-to-b from-background via-background to-muted/20 backdrop-blur-xl shadow-sm">
+    <div className="relative h-16 sm:h-20 border-b border-border/50 bg-gradient-to-b from-background via-background to-muted/20 backdrop-blur-xl shadow-sm z-[100]">
       {/* Subtle gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 opacity-50"></div>
       
@@ -378,29 +384,29 @@ const CustomChannelHeader = ({ onVideoCall, onVoiceCall, onSearch, onInfo, onDel
             {showMenu && (
               <>
                 <div
-                  className="fixed inset-0 z-10"
+                  className="fixed inset-0 z-40"
                   onClick={() => setShowMenu(false)}
                 ></div>
-                <div className="absolute right-0 top-full mt-2 w-48 bg-popover border border-border/50 rounded-xl shadow-xl z-20 overflow-hidden backdrop-blur-xl">
+                <div className="absolute right-0 top-full mt-2 w-48 bg-[#1f2937] border border-gray-600 rounded-xl shadow-2xl z-50 overflow-hidden">
                   <div className="py-1.5">
                     <button 
                       onClick={() => handleMenuAction(onSearch)}
-                      className="w-full px-4 py-2.5 text-left text-sm hover:bg-muted/50 transition-colors flex items-center gap-3 text-foreground"
+                      className="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-700 transition-colors flex items-center gap-3 text-gray-200"
                     >
-                      <Search className="w-4 h-4 text-muted-foreground" />
+                      <Search className="w-4 h-4 text-gray-400" />
                       <span>Search in chat</span>
                     </button>
                     <button 
                       onClick={() => handleMenuAction(onInfo)}
-                      className="w-full px-4 py-2.5 text-left text-sm hover:bg-muted/50 transition-colors flex items-center gap-3 text-foreground"
+                      className="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-700 transition-colors flex items-center gap-3 text-gray-200"
                     >
-                      <Info className="w-4 h-4 text-muted-foreground" />
+                      <Info className="w-4 h-4 text-gray-400" />
                       <span>Chat info</span>
                     </button>
-                    <div className="h-px bg-border/50 my-1.5"></div>
+                    <div className="h-px bg-gray-600 my-1.5"></div>
                     <button 
                       onClick={() => handleMenuAction(onDelete)}
-                      className="w-full px-4 py-2.5 text-left text-sm hover:bg-destructive/10 transition-colors flex items-center gap-3 text-destructive"
+                      className="w-full px-4 py-2.5 text-left text-sm hover:bg-red-900/50 transition-colors flex items-center gap-3 text-red-400"
                     >
                       <Trash2 className="w-4 h-4" />
                       <span>Delete chat</span>
