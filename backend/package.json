@@ -4,12 +4,9 @@
   "main": "src/server.js",
   "type": "module",
   "scripts": {
+    "start": "node src/server.js",
     "dev": "nodemon src/server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "@deepgram/sdk": "^4.11.3",
     "@google/generative-ai": "^0.24.1",
