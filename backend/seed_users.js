@@ -27,6 +27,7 @@ const seedUsers = async () => {
         bio: "Love learning languages!",
         location: "New York, USA",
         interests: ["Travel", "Music", "Coding"],
+        coordinates: { lat: 40.7128, lng: -74.0060 }, // NYC
       },
       {
         fullName: "Maria Garcia",
@@ -39,6 +40,7 @@ const seedUsers = async () => {
         bio: "Hola! I want to practice English.",
         location: "Madrid, Spain",
         interests: ["Cooking", "Dancing", "Movies"],
+        coordinates: { lat: 40.4168, lng: -3.7038 }, // Madrid
       },
       {
         fullName: "Yuki Tanaka",
@@ -51,6 +53,7 @@ const seedUsers = async () => {
         bio: "Let's exchange languages!",
         location: "Tokyo, Japan",
         interests: ["Anime", "Tech", "Reading"],
+        coordinates: { lat: 35.6762, lng: 139.6503 }, // Tokyo
       },
       {
         fullName: "Hans Müller",
@@ -63,6 +66,7 @@ const seedUsers = async () => {
         bio: "Guten Tag!",
         location: "Berlin, Germany",
         interests: ["Football", "Beer", "Cars"],
+        coordinates: { lat: 52.5200, lng: 13.4050 }, // Berlin
       },
       {
         fullName: "Sophie Dubois",
@@ -75,6 +79,7 @@ const seedUsers = async () => {
         bio: "Bonjour!",
         location: "Paris, France",
         interests: ["Fashion", "Art", "Wine"],
+        coordinates: { lat: 48.8566, lng: 2.3522 }, // Paris
       },
     ];
 
@@ -89,6 +94,7 @@ const seedUsers = async () => {
         existingUser.isOnboarded = true;
         existingUser.location = user.location;
         existingUser.bio = user.bio;
+        existingUser.coordinates = user.coordinates;
         await existingUser.save();
         console.log(`Updated existing user: ${user.fullName}`);
       }

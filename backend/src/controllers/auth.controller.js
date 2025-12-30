@@ -165,6 +165,8 @@ export const onboard = async (req, res) => {
   }
 };
 
+import cloudinary from "../lib/cloudinary.js"; // Import Cloudinary
+
 export const updateProfile = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -175,7 +177,15 @@ export const updateProfile = async (req, res) => {
       learningLanguage,
       location,
       interests,
+      profilePic, // Get profilePic (base64) from request
     } = req.body;
+
+    let imageUrl = "";
+    if (profilePic && profilePic.startsWith("data:image")) {
+        // Upload to Cloudinary
+        const uploadResponse = await cloudinary.uploader.upload(profilePic);
+        imageUrl = uploadResponse.secure_url;
+    }
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
@@ -186,6 +196,7 @@ export const updateProfile = async (req, res) => {
         learningLanguage,
         location,
         interests,
+        ...(imageUrl && { profilePic: imageUrl }), // Only update if new image uploaded
       },
       { new: true }
     );

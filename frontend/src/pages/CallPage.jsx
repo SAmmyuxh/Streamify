@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import useAuthUser from "../hooks/useAuthUser";
 import { useQuery } from "@tanstack/react-query";
 import { getStreamToken } from "../lib/api";
@@ -33,6 +33,9 @@ const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
 
 const CallPage = () => {
   const { id: callId } = useParams();
+  const [searchParams] = useSearchParams();
+  const isAudioOnly = searchParams.get('audio') === 'true';
+  
   const [client, setClient] = useState(null);
   const [call, setCall] = useState(null);
   const [isConnecting, setIsConnecting] = useState(true);
@@ -103,7 +106,17 @@ const CallPage = () => {
              // New call
         }
 
+        // Join with camera disabled if audio-only mode
         await callInstance.join({ create: true });
+        
+        // Disable camera for audio-only calls
+        if (isAudioOnly) {
+          try {
+            await callInstance.camera.disable();
+          } catch (e) {
+            console.warn('Could not disable camera:', e);
+          }
+        }
 
         setClient(videoClient);
         setCall(callInstance);

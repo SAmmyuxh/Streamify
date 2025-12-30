@@ -4,7 +4,6 @@ import useAuthUser from "../hooks/useAuthUser";
 import { useQuery } from "@tanstack/react-query";
 import { getStreamToken, ensureStreamUser } from "../lib/api";
 import { axiosInstance } from "../lib/axios";
-
 import {
   Channel,
   Chat,
@@ -17,21 +16,256 @@ import {
 } from "stream-chat-react";
 import { StreamChat } from "stream-chat";
 import toast from "react-hot-toast";
-import { ArrowLeft, Video, Phone, MoreVertical, Search, Trash2, Info } from "lucide-react";
-
+import {
+  ArrowLeft,
+  Video,
+  Phone,
+  MoreVertical,
+  Search,
+  Trash2,
+  Info,
+  X,
+  Calendar,
+  MessageSquare,
+  Image as ImageIcon,
+  Clock,
+  User,
+} from "lucide-react";
 import ChatLoader from "../components/ChatLoader";
 import CustomMessage from "../components/chat/CustomMessage";
-
 import "stream-chat-react/dist/css/v2/index.css";
 
 const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
 
-// Modern Custom Header with gradient and glass effects
-const CustomChannelHeader = ({ onVideoCall }) => {
+// Search Modal Component
+const SearchModal = ({ isOpen, onClose, channel }) => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  const handleSearch = async (query) => {
+    setSearchQuery(query);
+    if (!query.trim() || query.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      // Search messages in the channel
+      const results = await channel.search({ text: { $autocomplete: query } });
+      setSearchResults(results.results || []);
+    } catch (error) {
+      console.error("Search error:", error);
+      toast.error("Search failed");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-lg bg-background border border-border rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
+        {/* Search Header */}
+        <div className="flex items-center gap-3 p-4 border-b border-border">
+          <Search className="w-5 h-5 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search messages..."
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-base"
+            autoFocus
+          />
+          <button
+            onClick={onClose}
+            className="p-1.5 hover:bg-muted rounded-full transition-colors"
+          >
+            <X className="w-5 h-5 text-muted-foreground" />
+          </button>
+        </div>
+
+        {/* Search Results */}
+        <div className="max-h-80 overflow-y-auto">
+          {isSearching ? (
+            <div className="p-8 text-center text-muted-foreground">
+              <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2" />
+              Searching...
+            </div>
+          ) : searchResults.length > 0 ? (
+            <div className="p-2">
+              {searchResults.map((result) => (
+                <div
+                  key={result.message.id}
+                  className="p-3 hover:bg-muted/50 rounded-xl cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <img
+                      src={result.message.user?.image || "/avatar.png"}
+                      alt=""
+                      className="w-6 h-6 rounded-full"
+                    />
+                    <span className="text-sm font-medium text-foreground">
+                      {result.message.user?.name}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(result.message.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="text-sm text-foreground/80 line-clamp-2">
+                    {result.message.text}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : searchQuery.length >= 2 ? (
+            <div className="p-8 text-center text-muted-foreground">
+              No messages found
+            </div>
+          ) : (
+            <div className="p-8 text-center text-muted-foreground">
+              Type at least 2 characters to search
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Chat Info Modal Component
+const ChatInfoModal = ({ isOpen, onClose, otherUser, channel }) => {
+  const [messageCount, setMessageCount] = useState(0);
+  const [imageCount, setImageCount] = useState(0);
+
+  useEffect(() => {
+    if (channel && isOpen) {
+      // Count messages and images
+      const messages = channel.state.messages || [];
+      setMessageCount(messages.length);
+      setImageCount(
+        messages.filter((m) =>
+          m.attachments?.some((a) => a.type === "image")
+        ).length
+      );
+    }
+  }, [channel, isOpen]);
+
+  if (!isOpen || !otherUser) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-sm bg-background border border-border rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <h3 className="font-semibold text-lg text-foreground">Chat Info</h3>
+          <button
+            onClick={onClose}
+            className="p-1.5 hover:bg-muted rounded-full transition-colors"
+          >
+            <X className="w-5 h-5 text-muted-foreground" />
+          </button>
+        </div>
+
+        {/* User Profile Section */}
+        <div className="p-6 flex flex-col items-center text-center border-b border-border">
+          <img
+            src={otherUser.image || "/avatar.png"}
+            alt={otherUser.name}
+            className="w-24 h-24 rounded-full object-cover border-4 border-primary/20 shadow-xl mb-4"
+          />
+          <h4 className="text-xl font-semibold text-foreground">{otherUser.name}</h4>
+          <p className="text-sm text-muted-foreground mt-1">
+            {otherUser.online ? "🟢 Online" : "⚫ Offline"}
+          </p>
+        </div>
+
+        {/* Stats Section */}
+        <div className="p-4 grid grid-cols-2 gap-4">
+          <div className="bg-muted/30 rounded-xl p-4 text-center">
+            <div className="flex items-center justify-center gap-2 text-primary mb-1">
+              <MessageSquare className="w-5 h-5" />
+            </div>
+            <p className="text-2xl font-bold text-foreground">{messageCount}</p>
+            <p className="text-xs text-muted-foreground">Messages</p>
+          </div>
+          <div className="bg-muted/30 rounded-xl p-4 text-center">
+            <div className="flex items-center justify-center gap-2 text-primary mb-1">
+              <ImageIcon className="w-5 h-5" />
+            </div>
+            <p className="text-2xl font-bold text-foreground">{imageCount}</p>
+            <p className="text-xs text-muted-foreground">Images</p>
+          </div>
+        </div>
+
+        {/* Additional Info */}
+        <div className="p-4 border-t border-border">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <User className="w-4 h-4" />
+            <span>User ID: {otherUser.id}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Delete Confirmation Modal
+const DeleteConfirmModal = ({ isOpen, onClose, onConfirm, isDeleting }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-sm bg-background border border-border rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+        <div className="p-6 text-center">
+          <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Trash2 className="w-8 h-8 text-destructive" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">Delete Chat?</h3>
+          <p className="text-sm text-muted-foreground mb-6">
+            This will permanently delete all messages in this conversation. This action cannot be undone.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              disabled={isDeleting}
+              className="flex-1 py-2.5 px-4 rounded-xl border border-border hover:bg-muted transition-colors text-foreground font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onConfirm}
+              disabled={isDeleting}
+              className="flex-1 py-2.5 px-4 rounded-xl bg-destructive hover:bg-destructive/90 transition-colors text-white font-medium flex items-center justify-center gap-2"
+            >
+              {isDeleting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Enhanced Custom Header with premium design
+const CustomChannelHeader = ({ onVideoCall, onVoiceCall, onSearch, onInfo, onDelete }) => {
   const { channel, watchers } = useChannelStateContext();
   const { client } = useChatContext();
   const [otherUser, setOtherUser] = useState(null);
-  
+  const [showMenu, setShowMenu] = useState(false);
+
   useEffect(() => {
     if (channel && channel.state?.members) {
       const members = Object.values(channel.state.members);
@@ -48,109 +282,133 @@ const CustomChannelHeader = ({ onVideoCall }) => {
 
   if (!otherUser) {
     return (
-      <div className="h-20 border-b border-white/10 bg-gradient-to-r from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl flex items-center px-6 shadow-lg">
-        <div className="w-full flex items-center gap-4">
-          <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-600 animate-pulse shadow-xl" />
-          <div className="space-y-2 flex-1">
-            <div className="h-5 w-36 bg-gradient-to-r from-slate-700 to-slate-600 animate-pulse rounded-lg" />
-            <div className="h-3 w-24 bg-gradient-to-r from-slate-700 to-slate-600 animate-pulse rounded-lg" />
+      <div className="h-16 sm:h-20 border-b border-border/50 bg-gradient-to-b from-background via-background to-muted/20 backdrop-blur-xl">
+        <div className="h-full animate-pulse flex items-center px-4 sm:px-6">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-muted rounded-full"></div>
+          <div className="ml-3 sm:ml-4 flex-1">
+            <div className="h-4 bg-muted rounded w-32 mb-2"></div>
+            <div className="h-3 bg-muted rounded w-20"></div>
           </div>
         </div>
       </div>
     );
   }
 
+  const handleMenuAction = (action) => {
+    setShowMenu(false);
+    action();
+  };
+
   return (
-    <div className="h-20 border-b border-white/10 bg-gradient-to-r from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl flex items-center px-4 sm:px-6 sticky top-0 z-20 shadow-lg">
-      <div className="w-full flex items-center justify-between gap-4 max-w-7xl mx-auto">
-        <div className="flex items-center gap-4 flex-1 min-w-0">
-          <Link 
-            to="/" 
-            className="group p-2.5 hover:bg-white/10 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20"
+    <div className="relative h-16 sm:h-20 border-b border-border/50 bg-gradient-to-b from-background via-background to-muted/20 backdrop-blur-xl shadow-sm">
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary/5 opacity-50"></div>
+      
+      <div className="relative h-full flex items-center justify-between px-4 sm:px-6">
+        {/* Left section - Back button + User info */}
+        <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+          <Link
+            to="/"
+            className="p-2 hover:bg-muted/60 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 flex-shrink-0"
           >
-            <ArrowLeft className="h-5 w-5 text-slate-300 group-hover:text-white transition-colors" />
+            <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-foreground" />
           </Link>
-          
+
+          {/* User avatar with online indicator */}
           <div className="relative flex-shrink-0">
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
-              <img 
-                src={otherUser.image || "/avatar.png"} 
-                className="relative h-14 w-14 rounded-2xl object-cover ring-2 ring-white/20 shadow-xl hover:ring-white/40 transition-all duration-300" 
-                alt={otherUser.name} 
-              />
-              {isOnline && (
-                <span className="absolute -bottom-1 -right-1 h-4 w-4 bg-emerald-500 rounded-full ring-4 ring-slate-900 shadow-lg">
-                  <span className="absolute inset-0 bg-emerald-500 rounded-full animate-ping opacity-75" />
-                </span>
-              )}
-            </div>
+            <img
+              src={otherUser.image || "/avatar.png"}
+              alt={otherUser.name}
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-background shadow-lg ring-2 ring-primary/10 transition-all duration-200 hover:ring-primary/30"
+            />
+            {isOnline && (
+              <div className="absolute bottom-0 right-0 w-3 h-3 sm:w-3.5 sm:h-3.5 bg-green-500 rounded-full border-2 border-background shadow-lg">
+                <div className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75"></div>
+              </div>
+            )}
           </div>
-          
-          <div className="flex flex-col min-w-0">
-            <h2 className="font-semibold text-lg text-white truncate tracking-tight">{otherUser.name}</h2>
-            <div className="flex items-center gap-2">
-              {isOnline ? (
-                <div className="flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 bg-emerald-400 rounded-full animate-pulse" />
-                  <span className="text-xs text-emerald-400 font-medium">
-                    Active now
-                  </span>
-                </div>
-              ) : (
-                <span className="text-xs text-slate-400">Offline</span>
-              )}
-            </div>
+
+          {/* User name and status */}
+          <div className="flex-1 min-w-0">
+            <h2 className="font-semibold text-base sm:text-lg text-foreground truncate">
+              {otherUser.name}
+            </h2>
+            {isOnline ? (
+              <div className="flex items-center gap-1.5 text-xs sm:text-sm text-green-600 dark:text-green-400">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                <span className="font-medium">Active now</span>
+              </div>
+            ) : (
+              <p className="text-xs sm:text-sm text-muted-foreground">Offline</p>
+            )}
           </div>
         </div>
-        
-        <div className="flex items-center gap-1">
+
+        {/* Right section - Action buttons */}
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+          {/* Video call button */}
           <button
-            className="group p-2.5 hover:bg-gradient-to-br hover:from-blue-600 hover:to-blue-500 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/30"
             onClick={onVideoCall}
+            className="p-2 sm:p-2.5 hover:bg-primary/10 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 group"
             title="Start video call"
           >
-            <Video className="h-5 w-5 text-slate-300 group-hover:text-white transition-colors" />
+            <Video className="w-5 h-5 sm:w-5 sm:h-5 text-muted-foreground group-hover:text-primary transition-colors" />
           </button>
-          
+
+          {/* Phone call button */}
           <button
-            className="group p-2.5 hover:bg-gradient-to-br hover:from-emerald-600 hover:to-emerald-500 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/30"
+            onClick={onVoiceCall}
+            className="p-2 sm:p-2.5 hover:bg-primary/10 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 group"
             title="Start voice call"
           >
-            <Phone className="h-5 w-5 text-slate-300 group-hover:text-white transition-colors" />
+            <Phone className="w-5 h-5 sm:w-5 sm:h-5 text-muted-foreground group-hover:text-primary transition-colors" />
           </button>
-          
-          <div className="dropdown dropdown-end">
-            <button 
-              tabIndex={0} 
-              className="p-2.5 hover:bg-white/10 rounded-xl transition-all duration-300"
+
+          {/* More options menu */}
+          <div className="relative">
+            <button
+              onClick={() => setShowMenu(!showMenu)}
+              className="p-2 sm:p-2.5 hover:bg-muted/60 rounded-full transition-all duration-200 hover:scale-105 active:scale-95"
+              title="More options"
             >
-              <MoreVertical className="h-5 w-5 text-slate-300" />
+              <MoreVertical className="w-5 h-5 sm:w-5 sm:h-5 text-muted-foreground" />
             </button>
-            <ul 
-              tabIndex={0} 
-              className="dropdown-content z-[1] menu p-2 shadow-2xl bg-slate-800/95 backdrop-blur-xl rounded-2xl w-56 border border-white/10 mt-2"
-            >
-              <li>
-                <button className="flex items-center gap-3 text-slate-200 hover:bg-white/10 rounded-xl py-2.5 px-3 transition-all duration-200">
-                  <Search className="h-4 w-4" />
-                  <span className="text-sm">Search in chat</span>
-                </button>
-              </li>
-              <li>
-                <button className="flex items-center gap-3 text-slate-200 hover:bg-white/10 rounded-xl py-2.5 px-3 transition-all duration-200">
-                  <Info className="h-4 w-4" />
-                  <span className="text-sm">Chat info</span>
-                </button>
-              </li>
-              <div className="divider my-1 opacity-20"></div>
-              <li>
-                <button className="flex items-center gap-3 text-red-400 hover:bg-red-500/10 rounded-xl py-2.5 px-3 transition-all duration-200">
-                  <Trash2 className="h-4 w-4" />
-                  <span className="text-sm">Delete chat</span>
-                </button>
-              </li>
-            </ul>
+
+            {/* Dropdown menu */}
+            {showMenu && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setShowMenu(false)}
+                ></div>
+                <div className="absolute right-0 top-full mt-2 w-48 bg-popover border border-border/50 rounded-xl shadow-xl z-20 overflow-hidden backdrop-blur-xl">
+                  <div className="py-1.5">
+                    <button 
+                      onClick={() => handleMenuAction(onSearch)}
+                      className="w-full px-4 py-2.5 text-left text-sm hover:bg-muted/50 transition-colors flex items-center gap-3 text-foreground"
+                    >
+                      <Search className="w-4 h-4 text-muted-foreground" />
+                      <span>Search in chat</span>
+                    </button>
+                    <button 
+                      onClick={() => handleMenuAction(onInfo)}
+                      className="w-full px-4 py-2.5 text-left text-sm hover:bg-muted/50 transition-colors flex items-center gap-3 text-foreground"
+                    >
+                      <Info className="w-4 h-4 text-muted-foreground" />
+                      <span>Chat info</span>
+                    </button>
+                    <div className="h-px bg-border/50 my-1.5"></div>
+                    <button 
+                      onClick={() => handleMenuAction(onDelete)}
+                      className="w-full px-4 py-2.5 text-left text-sm hover:bg-destructive/10 transition-colors flex items-center gap-3 text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>Delete chat</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -161,20 +419,26 @@ const CustomChannelHeader = ({ onVideoCall }) => {
 const ChatPage = () => {
   const { id: targetUserId } = useParams();
   const navigate = useNavigate();
-  
   const [chatClient, setChatClient] = useState(null);
   const [channel, setChannel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const clientRef = useRef(null);
 
+  // Modal states
+  const [showSearch, setShowSearch] = useState(false);
+  const [showChatInfo, setShowChatInfo] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [otherUserInfo, setOtherUserInfo] = useState(null);
+
   const { authUser, isLoading: authUserLoading } = useAuthUser();
 
   const { data: tokenData, isLoading: tokenLoading } = useQuery({
-      queryKey: ["streamToken"],
-      queryFn: getStreamToken,
-      enabled: !!authUser && !authUserLoading,
-      retry: 2,
+    queryKey: ["streamToken"],
+    queryFn: getStreamToken,
+    enabled: !!authUser && !authUserLoading,
+    retry: 2,
   });
 
   useEffect(() => {
@@ -189,7 +453,6 @@ const ChatPage = () => {
         setLoading(true);
 
         let client = StreamChat.getInstance(STREAM_API_KEY);
-
         if (client.userID) {
           await client.disconnectUser();
         }
@@ -197,8 +460,10 @@ const ChatPage = () => {
         const userId = authUser._id.toString();
         const targetUserIdStr = targetUserId.toString();
 
-        await ensureStreamUser(targetUserIdStr).catch(err => console.warn("Ensure user check:", err));
-        
+        await ensureStreamUser(targetUserIdStr).catch((err) =>
+          console.warn("Ensure user check:", err)
+        );
+
         await client.connectUser(
           {
             id: userId,
@@ -211,16 +476,21 @@ const ChatPage = () => {
         clientRef.current = client;
 
         const channelId = [userId, targetUserIdStr].sort().join("-");
-        
         const currChannel = client.channel("messaging", channelId, {
           members: [userId, targetUserIdStr],
         });
 
         await currChannel.watch({ presence: true });
 
+        // Get other user info for modals
+        const members = Object.values(currChannel.state.members);
+        const otherMember = members.find((m) => m.user_id !== userId);
+        if (otherMember?.user) {
+          setOtherUserInfo(otherMember.user);
+        }
+
         setChatClient(client);
         setChannel(currChannel);
-        
       } catch (error) {
         console.error("Error initializing chat:", error);
         setError("Could not connect to chat.");
@@ -244,35 +514,30 @@ const ChatPage = () => {
     if (channel) {
       try {
         setIsCalling(true);
-        // Generate a unique call ID to prevent reusing the same link
         const callId = crypto.randomUUID();
-        
-        // 1. Notify the backend so global notification works
+
         const members = Object.values(channel.state.members);
-        const otherMember = members.find(m => m.user.id !== chatClient.userID);
-        
+        const otherMember = members.find((m) => m.user.id !== chatClient.userID);
+
         if (otherMember) {
-             await axiosInstance.post("/notifications/send-call-invite", {
-                recipientId: otherMember.user.id,
-                callId: callId
-             });
+          await axiosInstance.post("/notifications/send-call-invite", {
+            recipientId: otherMember.user.id,
+            callId: callId,
+          });
         }
 
-        // 2. Send the chat message with the invite card
         await channel.sendMessage({
-          text: "", 
+          text: "",
           attachments: [
             {
               type: "call_invite",
               call_id: callId,
               title: "Video Call Invitation",
-            }
-          ]
+            },
+          ],
         });
 
-        // 3. Navigate to the call
         navigate(`/call/${callId}`);
-        
       } catch (error) {
         console.error("Error starting call:", error);
         toast.error("Failed to start video call");
@@ -281,26 +546,116 @@ const ChatPage = () => {
     }
   };
 
+  const handleVoiceCall = async () => {
+    if (isCalling) return;
+
+    if (channel) {
+      try {
+        setIsCalling(true);
+        const callId = crypto.randomUUID();
+
+        const members = Object.values(channel.state.members);
+        const otherMember = members.find((m) => m.user.id !== chatClient.userID);
+
+        if (otherMember) {
+          await axiosInstance.post("/notifications/send-call-invite", {
+            recipientId: otherMember.user.id,
+            callId: callId,
+          });
+        }
+
+        await channel.sendMessage({
+          text: "",
+          attachments: [
+            {
+              type: "call_invite",
+              call_id: callId,
+              title: "Voice Call Invitation",
+            },
+          ],
+        });
+
+        // Navigate to call page with audio-only mode
+        navigate(`/call/${callId}?audio=true`);
+      } catch (error) {
+        console.error("Error starting voice call:", error);
+        toast.error("Failed to start voice call");
+        setIsCalling(false);
+      }
+    }
+  };
+
+  const handleDeleteChat = async () => {
+    if (!channel) return;
+
+    try {
+      setIsDeleting(true);
+      await channel.delete();
+      toast.success("Chat deleted successfully");
+      navigate("/");
+    } catch (error) {
+      console.error("Error deleting chat:", error);
+      toast.error("Failed to delete chat");
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   if (loading || !chatClient || !channel) return <ChatLoader />;
 
   return (
-    <div className="h-[93vh] flex flex-col bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 overflow-hidden relative">
-      {/* Ambient background effects */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent pointer-events-none" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent pointer-events-none" />
-      
-      <div className="relative z-10 h-full flex flex-col">
-        <Chat client={chatClient} theme="str-chat__theme-dark">
-          <Channel channel={channel}>
+    <div className="h-[calc(100vh-4rem)] w-full flex flex-col bg-gradient-to-br from-background via-background to-muted/10">
+      {/* Premium ambient background effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-blob animation-delay-2000"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/3 rounded-full blur-3xl animate-blob animation-delay-4000"></div>
+      </div>
+
+      {/* Chat interface with all components */}
+      <div className="relative z-10 flex-1 flex flex-col min-h-0 overflow-hidden">
+        <Chat client={chatClient} theme="str-chat__theme-light">
+          <Channel channel={channel} Message={CustomMessage}>
             <Window>
-              <CustomChannelHeader onVideoCall={handleVideoCall} />
-              <MessageList Message={CustomMessage} />
-              <MessageInput /> 
+              {/* Custom Header - must be inside Window */}
+              <CustomChannelHeader 
+                onVideoCall={handleVideoCall} 
+                onVoiceCall={handleVoiceCall}
+                onSearch={() => setShowSearch(true)}
+                onInfo={() => setShowChatInfo(true)}
+                onDelete={() => setShowDeleteConfirm(true)}
+              />
+              
+              {/* Message List */}
+              <MessageList />
+              
+              {/* Message Input */}
+              <MessageInput focus />
             </Window>
             <Thread />
           </Channel>
         </Chat>
       </div>
+
+      {/* Modals */}
+      <SearchModal 
+        isOpen={showSearch} 
+        onClose={() => setShowSearch(false)} 
+        channel={channel}
+      />
+      <ChatInfoModal 
+        isOpen={showChatInfo} 
+        onClose={() => setShowChatInfo(false)} 
+        otherUser={otherUserInfo}
+        channel={channel}
+      />
+      <DeleteConfirmModal 
+        isOpen={showDeleteConfirm} 
+        onClose={() => setShowDeleteConfirm(false)} 
+        onConfirm={handleDeleteChat}
+        isDeleting={isDeleting}
+      />
     </div>
   );
 };

@@ -14,6 +14,12 @@ export const logout = async () => {
   return response.data;
 };
 
+// Update user streak on daily login
+export const updateStreak = async () => {
+  const response = await axiosInstance.post("/gamification/update-streak");
+  return response.data;
+};
+
 export const getAuthUser = async () => {
   try {
     const res = await axiosInstance.get("/auth/me");

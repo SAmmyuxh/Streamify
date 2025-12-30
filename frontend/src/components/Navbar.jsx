@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router";
 import useAuthUser from "../hooks/useAuthUser";
-import { BellIcon, LogOutIcon, ShipWheelIcon } from "lucide-react";
+import { BellIcon, LogOutIcon, ShipWheelIcon, Flame, Trophy, Bot, Globe, Mic } from "lucide-react";
 import ThemeSelector from "./ThemeSelector";
 import useLogout from "../hooks/useLogout";
 
@@ -36,6 +36,46 @@ const Navbar = () => {
 
           {/* Right Side Controls */}
           <div className="flex items-center gap-2 ml-auto">
+            {/* Streak Indicator */}
+            <div className="hidden sm:flex items-center gap-1 bg-gradient-to-r from-amber-500/10 to-orange-500/10 px-3 py-1.5 rounded-full border border-orange-500/20 mr-2">
+              <Flame className={`size-4 ${authUser?.streak > 0 ? "text-orange-500 fill-orange-500 animate-pulse" : "text-base-content/40"}`} />
+              <span className={`text-sm font-bold ${authUser?.streak > 0 ? "text-orange-600" : "text-base-content/60"}`}>
+                {authUser?.streak || 0}
+              </span>
+            </div>
+
+            {/* Leaderboard Button */}
+            <Link to="/leaderboard">
+              <button className="btn btn-ghost btn-circle relative group hover:bg-primary/10 hover:text-primary transition-all duration-300">
+                <Trophy className="h-5 w-5" />
+                <div className="absolute inset-0 rounded-full bg-primary/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            </Link>
+
+            {/* Map Button */}
+            <Link to="/map">
+              <button className="btn btn-ghost btn-circle relative group hover:bg-accent/10 hover:text-accent transition-all duration-300">
+                <Globe className="h-5 w-5" />
+                <div className="absolute inset-0 rounded-full bg-accent/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            </Link>
+
+            {/* Voice Lab Button */}
+            <Link to="/voice-lab">
+              <button className="btn btn-ghost btn-circle relative group hover:bg-primary/10 hover:text-primary transition-all duration-300">
+                <Mic className="h-5 w-5" />
+                <div className="absolute inset-0 rounded-full bg-primary/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            </Link>
+
+            {/* AI Tutor Button */}
+            <Link to="/ai-tutor">
+              <button className="btn btn-ghost btn-circle relative group hover:bg-secondary/10 hover:text-secondary transition-all duration-300">
+                <Bot className="h-5 w-5" />
+                <div className="absolute inset-0 rounded-full bg-secondary/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            </Link>
+
             {/* Notifications Button */}
             <Link to="/notifications">
               <button className="btn btn-ghost btn-circle relative group hover:bg-primary/10 hover:text-primary transition-all duration-300">

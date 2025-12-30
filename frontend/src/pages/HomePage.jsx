@@ -12,6 +12,7 @@ import { Link } from "react-router";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
+import MomentsBar from "../components/MomentsBar";
 
 const HomePage = () => {
   const queryClient = useQueryClient();
@@ -127,6 +128,9 @@ const HomePage = () => {
           </div>
         </div>
       </motion.div>
+
+      {/* MOMENTS BAR */}
+      <MomentsBar />
 
       {/* FRIENDS SECTION */}
       <section>

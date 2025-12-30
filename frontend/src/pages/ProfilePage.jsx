@@ -9,7 +9,10 @@ import {
   XIcon,
   GlobeIcon,
   SparklesIcon,
-  Edit3Icon
+  Edit3Icon,
+  Zap,
+  Trophy,
+  Flame
 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { axiosInstance } from "../lib/axios";
@@ -26,7 +29,19 @@ const ProfilePage = () => {
     nativeLanguage: authUser?.nativeLanguage || "",
     learningLanguage: authUser?.learningLanguage || "",
     interests: authUser?.interests || [],
+    profilePic: "", // Add profilePic to state
   });
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, profilePic: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
   const [newInterest, setNewInterest] = useState("");
 
   const queryClient = useQueryClient();
@@ -106,14 +121,22 @@ const ProfilePage = () => {
                 <div className="absolute inset-0 bg-primary/30 rounded-full blur-xl group-hover:bg-primary/50 transition-all duration-300" />
                 <div className="avatar size-32 relative">
                   <img
-                    src={authUser?.profilePic || "/avatar.png"}
+                    src={formData.profilePic || authUser?.profilePic || "/avatar.png"}
                     alt="Profile"
-                    className="rounded-full ring-4 ring-base-100 shadow-2xl group-hover:scale-105 transition-transform duration-300"
+                    className="rounded-full ring-4 ring-base-100 shadow-2xl group-hover:scale-105 transition-transform duration-300 object-cover"
                   />
                 </div>
-                <button className="btn btn-circle btn-sm btn-primary absolute bottom-2 right-2 shadow-xl transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
-                  <CameraIcon className="size-4" />
-                </button>
+                {isEditing && (
+                  <label className="btn btn-circle btn-sm btn-primary absolute bottom-2 right-2 shadow-xl transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 cursor-pointer">
+                    <CameraIcon className="size-4" />
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*"
+                      onChange={handleImageChange}
+                    />
+                  </label>
+                )}
               </div>
             </motion.div>
           </div>
@@ -380,18 +403,41 @@ const ProfilePage = () => {
                   </div>
 
                   {/* Stats Card */}
-                  <div className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 p-6 rounded-2xl border-2 border-primary/20">
-                    <h3 className="text-xl font-semibold mb-4">Profile Stats</h3>
+                  {/* Gamification Stats Card */}
+                  <div className="bg-gradient-to-br from-violet-500/10 via-purple-500/5 to-fuchsia-500/10 p-6 rounded-2xl border-2 border-violet-500/20">
+                    <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                       <Trophy className="size-5 text-yellow-500" />
+                       Level Progress
+                    </h3>
+                    
+                    {/* Level Banner */}
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-base-content/70">Level {authUser?.level || 1}</span>
+                      <span className="text-sm font-bold text-violet-400">{authUser?.xp || 0} XP</span>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="w-full bg-base-300 rounded-full h-3 mb-6 overflow-hidden">
+                      <div 
+                        className="bg-gradient-to-r from-violet-500 to-fuchsia-500 h-full rounded-full transition-all duration-1000 ease-out"
+                        style={{ width: `${Math.min(((authUser?.xp || 0) % 100), 100)}%` }} 
+                      />
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="text-center p-3 bg-base-100/50 rounded-xl">
-                        <div className="text-2xl font-bold text-primary">
-                          {authUser?.interests?.length || 0}
+                      <div className="text-center p-3 bg-base-100/50 rounded-xl hover:scale-105 transition-transform">
+                        <div className="text-2xl font-bold text-orange-500 flex items-center justify-center gap-1">
+                          <Flame className="size-6 fill-orange-500" />
+                          {authUser?.streak || 0}
                         </div>
-                        <div className="text-xs text-base-content/60">Interests</div>
+                        <div className="text-xs text-base-content/60 font-medium">Day Streak</div>
                       </div>
-                      <div className="text-center p-3 bg-base-100/50 rounded-xl">
-                        <div className="text-2xl font-bold text-success">100%</div>
-                        <div className="text-xs text-base-content/60">Complete</div>
+                      <div className="text-center p-3 bg-base-100/50 rounded-xl hover:scale-105 transition-transform">
+                         <div className="text-2xl font-bold text-yellow-500 flex items-center justify-center gap-1">
+                          <Zap className="size-6 fill-yellow-500" />
+                          {authUser?.xp || 0}
+                        </div>
+                        <div className="text-xs text-base-content/60 font-medium">Total XP</div>
                       </div>
                     </div>
                   </div>

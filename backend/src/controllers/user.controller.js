@@ -223,3 +223,21 @@ export const rejectFriendRequest = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// Get users for map (users with coordinates)
+export const getMapUsers = async (req, res) => {
+  try {
+    const users = await User.find({
+      "coordinates.lat": { $ne: 0 },
+      "coordinates.lng": { $ne: 0 },
+      _id: { $ne: req.user._id } // Exclude self
+    })
+    .select("fullName profilePic nativeLanguage learningLanguage location coordinates")
+    .limit(50);
+
+    res.json(users);
+  } catch (error) {
+    console.error("Error in getMapUsers:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

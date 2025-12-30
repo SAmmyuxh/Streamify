@@ -40,6 +40,10 @@ const UserSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    coordinates: {
+      lat: { type: Number, default: 0 },
+      lng: { type: Number, default: 0 },
+    },
     isOnboarded: {
       type: Boolean,
       default: false,
@@ -50,6 +54,23 @@ const UserSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    // Gamification Fields
+    xp: {
+      type: Number,
+      default: 0,
+    },
+    level: {
+      type: Number,
+      default: 1,
+    },
+    streak: {
+      type: Number,
+      default: 0,
+    },
+    lastActiveDate: {
+      type: Date,
+      default: Date.now,
+    },
   },
   { timestamps: true }
 );
