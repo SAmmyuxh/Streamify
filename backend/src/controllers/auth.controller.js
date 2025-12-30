@@ -59,7 +59,7 @@ export const signupcontroller = async (req, res) => {
     res.cookie("jwt", token, {
       maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       secure: process.env.NODE_ENV === "production",
     });
     res.status(201).json({
@@ -94,7 +94,7 @@ export const logincontroller = async (req, res) => {
     res.cookie("jwt", token, {
       maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       secure: process.env.NODE_ENV === "production",
     });
     res.status(200).json({ success: true, user });
@@ -105,7 +105,11 @@ export const logincontroller = async (req, res) => {
 };
 
 export const logoutcontroller = async (req, res) => {
-  res.clearCookie("jwt");
+  res.clearCookie("jwt", {
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
   res.status(200).json({ success: true, message: "Logged out successfully" });
 };
 
